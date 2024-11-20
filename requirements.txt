@@ -1,0 +1,5 @@
+transformers
+datasets
+accelerate
+qwen_vl_utils
+flash-attn --no-build-isolation
