@@ -21,7 +21,7 @@ def main():
     # install packages
     for package in req:
         subprocess.run(["pip", "install", package])
-    subprocess.run(["flash-attn", "--no-build-isolation"])
+    subprocess.run(["pip", "install", "flash-attn", "--no-build-isolation"])
 
 
 if __name__ == "__main__":
