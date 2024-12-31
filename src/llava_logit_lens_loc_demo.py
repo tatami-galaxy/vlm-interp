@@ -42,6 +42,8 @@ if __name__ == "__main__":
 
     # forward pass
     _, hidden_states, _ = llava_forward_pass(inputs, model, output_hidden_states=True)
+
+    # TODO: norm before unembedding
     
 
 
