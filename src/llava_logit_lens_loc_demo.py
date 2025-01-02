@@ -16,11 +16,14 @@ from lens_utils import llava_logit_lens
 class Arguments:
     """arguments"""
 
-    dataset_path: str = field(
-        default='/home/drdo/vlm-compositionality/data/raw/sugarcrepe',
+    data_path: str = field(
+        default='/home/drdo/vlm-compositionality/data'
+    )
+    dataset_folder: str = field(
+        default='raw/sugarcrepe',
     )
     image_folder: str = field(
-        default='/home/drdo/vlm-compositionality/data/raw/coco_val_2017'
+        default='raw/coco_val_2017'
     )
     model_name: str = field(default="llava-hf/llava-1.5-13b-hf")
     image_file: str = field(default=None)
@@ -32,10 +35,14 @@ if __name__ == "__main__":
     parser = HfArgumentParser(Arguments)
     args = parser.parse_args_into_dataclasses()[0]
 
+    # append paths
+    dataset_folder = args.data_path+'/'+args.dataset_folder
+    image_folder = args.data_path+'/'+args.image_folder
+
     # load image
     # TODO: random image
     assert args.image_file is not None
-    image = Image.open(args.image_folder+'/'+args.image_file)
+    image = Image.open(image_folder+'/'+args.image_file)
 
     # load model, processor
     model, processor = llava_load_model(args.model_name)
