@@ -6,7 +6,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from transformers import HfArgumentParser
 
-from utils import llava_load_model, llava_process_image, llava_forward_pass
+from utils import llava_load_model, llava_process_image, llava_generate
+from lens_utils import llava_logit_lens
+
+# uv run python llava_logit_lens_loc_demo.py --model_name llava-hf/llava-1.5-7b-hf --image_file 000000008690.jpg
 
 
 @dataclass
@@ -40,12 +43,15 @@ if __name__ == "__main__":
     # process image and prompt(default)
     inputs = llava_process_image(image, processor, device=model.device)
 
-    # forward pass
-    _, hidden_states, _ = llava_forward_pass(inputs, model, output_hidden_states=True)
+    # generate
+    outputs = llava_generate(inputs, model)
+
+    # get logit lens
+    llava_logit_lens(inputs, model, outputs)
+
 
     # TODO: norm before unembedding
     
 
 
     plt.show()
-# End-of-file (EOF)

@@ -87,4 +87,24 @@ def llava_forward_pass(inputs, model, output_hidden_states=False, output_attenti
     return logits, hidden_states, attentions
 
 
+def llava_generate(
+        inputs,
+        model,
+        output_hidden_states=True,
+        num_beams=5,
+        temperature=1.0,
+        max_new_tokens=512
+    ):
+    """Generate to collect logits, hidden_states, attentions"""
+    output = model.generate(
+        **inputs,
+        temperature=temperature,
+        num_beams=num_beams,
+        max_new_tokens=max_new_tokens,
+        use_cache=True,
+        output_hidden_states=output_hidden_states,
+        return_dict_in_generate=True,
+    )
+    return output
+
 # End-of-file (EOF)
