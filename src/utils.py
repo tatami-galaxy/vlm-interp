@@ -49,7 +49,7 @@ def load_sugarcrepe(folder_path):
 
 def llava_load_model(model_name, flash_attention=True):
     """load llava model"""
-
+    # TODO: dtype
     if flash_attention:
         model =  LlavaForConditionalGeneration.from_pretrained(
             model_name,
