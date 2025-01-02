@@ -49,6 +49,7 @@ def load_sugarcrepe(folder_path):
 
 def llava_load_model(model_name, flash_attention=True):
     """load llava model"""
+
     if flash_attention:
         model =  LlavaForConditionalGeneration.from_pretrained(
             model_name,
@@ -63,6 +64,9 @@ def llava_load_model(model_name, flash_attention=True):
             device_map="auto",
         )
     processor = AutoProcessor.from_pretrained(model_name)
+    #processor.patch_size = 14
+    #processor.vision_feature_select_strategy = 'default'
+
     return model, processor
 
 

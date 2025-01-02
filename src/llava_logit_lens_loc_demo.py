@@ -54,11 +54,9 @@ if __name__ == "__main__":
     outputs = llava_generate(inputs, model)
 
     # get logit lens
-    llava_logit_lens(inputs, model, outputs)
-
-
     # TODO: norm before unembedding
-    
+    softmax_probs = llava_logit_lens(inputs, model, outputs)
+
 
 
     plt.show()
