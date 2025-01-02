@@ -2,7 +2,6 @@
 
 import torch
 from transformers.generation.logits_process import TopKLogitsWarper
-from transformers.generation.logits_process import LogitsProcessorList
 
 
 def llava_logit_lens(inputs, model, outputs, topk=50):
@@ -11,25 +10,25 @@ def llava_logit_lens(inputs, model, outputs, topk=50):
     assert outputs['hidden_states'] is not None
     input_ids = inputs['input_ids']
     logits_warper = TopKLogitsWarper(top_k=topk, filter_value=float("-inf"))
-    logits_processor = LogitsProcessorList([])
     image_token_id = model.config.image_token_index
 
     # first forward pass
     hidden_states = torch.stack(outputs.hidden_states[0])
     
     with torch.inference_mode():
-        # TODO: logits processor, norm
+        # TODO: norm
         curr_layer_logits = model.language_model.lm_head(hidden_states).cpu().float()
         logit_scores = torch.nn.functional.log_softmax(curr_layer_logits, dim=-1)
-        logit_scores_processed = logits_processor(input_ids, logit_scores)
-        logit_scores = logits_warper(input_ids, logit_scores_processed)
+        # remove all tokens with a probability less than the last token of the top-k
+        logit_scores = logits_warper(input_ids, logit_scores)
+        # softmax -> re-distribute probability mass
         softmax_probs = torch.nn.functional.softmax(logit_scores, dim=-1)
         softmax_probs = softmax_probs.detach().cpu().numpy()
 
         # get scores of image tokens
         image_token_index = input_ids.tolist()[0].index(image_token_id)
         softmax_probs = softmax_probs[
-            :, :, image_token_index : image_token_index + (24 * 24) # change?
+            :, :, image_token_index : image_token_index + (24 * 24) # 576 -> compute differently?
         ]
         
         # transpose to (vocab_dim, num_layers, num_tokens, num_beams)

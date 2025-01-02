@@ -9,7 +9,8 @@ from transformers import HfArgumentParser
 from utils import llava_load_model, llava_process_image, llava_generate
 from lens_utils import llava_logit_lens
 
-# uv run python llava_logit_lens_loc_demo.py --model_name llava-hf/llava-1.5-7b-hf --image_file 000000008690.jpg
+# uv run python llava_sugarcrepe_logit_lens_loc_demo.py --model_name llava-hf/llava-1.5-7b-hf 
+# --data_path /root/vlm-compositionality/data --image_file 000000008690.jpg
 
 
 @dataclass
@@ -55,6 +56,7 @@ if __name__ == "__main__":
 
     # get logit lens
     # TODO: norm before unembedding
+    # vocab_dim, num_layers, num_tokens
     softmax_probs = llava_logit_lens(inputs, model, outputs)
 
 
