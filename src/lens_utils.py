@@ -4,7 +4,7 @@ import torch
 from transformers.generation.logits_process import TopKLogitsWarper
 
 
-def llava_logit_lens(inputs, model, outputs, topk=50):
+def llava_logit_lens(inputs, model, outputs, topk=50, norm=False):
     """get logit lens distribution over vocab"""
 
     assert outputs['hidden_states'] is not None
@@ -16,7 +16,8 @@ def llava_logit_lens(inputs, model, outputs, topk=50):
     hidden_states = torch.stack(outputs.hidden_states[0])
     
     with torch.inference_mode():
-        # TODO: norm
+        if norm:
+            hidden_states[:-1, :, :, :] = model.language_model.model.norm(hidden_states[:-1, :, :, :])
         curr_layer_logits = model.language_model.lm_head(hidden_states).cpu().float()
         logit_scores = torch.nn.functional.log_softmax(curr_layer_logits, dim=-1)
         # remove all tokens with a probability less than the last token of the top-k
