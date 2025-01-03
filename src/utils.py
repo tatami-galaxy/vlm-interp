@@ -47,20 +47,20 @@ def load_sugarcrepe(folder_path):
     return dataset
 
 
-def llava_load_model(model_name, flash_attention=True):
+def llava_load_model(model_name, flash_attention=True, torch_dtype=torch.bfloat16):
     """load llava model"""
     # TODO: dtype
     if flash_attention:
         model =  LlavaForConditionalGeneration.from_pretrained(
             model_name,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=torch_dtype,
             attn_implementation="flash_attention_2",
             device_map="auto",
         )
     else:
         model =  LlavaForConditionalGeneration.from_pretrained(
             model_name,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=torch_dtype,
             device_map="auto",
         )
     processor = AutoProcessor.from_pretrained(model_name)
