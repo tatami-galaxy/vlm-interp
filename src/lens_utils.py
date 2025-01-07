@@ -1,9 +1,11 @@
 """logit lens and tuned lens functions"""
 
+from PIL import Image
+import numpy as np
 import torch
 from transformers.generation.logits_process import TopKLogitsWarper
 
-
+# TODO : what if token not in topk?
 def llava_logit_lens(inputs, model, outputs, topk=50, norm=False):
     """get logit lens distribution over vocab"""
 
@@ -42,3 +44,11 @@ def llava_logit_lens(inputs, model, outputs, topk=50, norm=False):
         softmax_probs = softmax_probs.max(axis=3)
 
         return softmax_probs
+    
+
+def get_mask_from_lens(softmax_probs, token, processor, num_patches, width, height):
+    class_token_indices = processor.tokenizer.encode(token)[1:]
+    softmax_probs = softmax_probs[class_token_indices].max(axis=0).max(axis=0)
+    segmentation = softmax_probs.reshape(num_patches, num_patches).astype(float)
+
+    segmentation_resized = (np.array(Image.fromarray(segmentation).resize((width, height), Image.BILINEAR)))

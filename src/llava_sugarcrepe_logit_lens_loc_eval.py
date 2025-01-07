@@ -8,35 +8,45 @@ import matplotlib.pyplot as plt
 from transformers import HfArgumentParser
 from pycocotools.coco import COCO
 
-from utils import(
+from data_utils import(
+    load_sugarcrepe,
+    coco_cats,
+    filter_sugarcrepe_distict_objects,
+)
+
+from llava_utils import(
     llava_load_model, 
     llava_process_image, 
     llava_generate,
-    load_sugarcrepe,
 )
-from lens_utils import llava_logit_lens
+from lens_utils import(
+    llava_logit_lens,
+    get_mask_from_lens,
+)
 
 
 @dataclass
 class Arguments:
     """arguments"""
 
-    project_folder: str = field(
+    project_dir: str = field(
         default='/home/drdo/vlm-compositionality'
     )
-    dataset_folder: str = field(
+    dataset_dir: str = field(
         default=None,
     )
-    image_folder: str = field(
+    image_dir: str = field(
         default=None
     )
-    ann_folder: str = field(
+    ann_dir: str = field(
         default=None,
     )
     ann_file: str = field(
         default=None,
     )
     model_name: str = field(default="llava-hf/llava-1.5-7b-hf")
+    topk: int = field(default=5)
+    num_patches: int = field(default=24)
 
 
 if __name__ == "__main__":
@@ -45,47 +55,59 @@ if __name__ == "__main__":
     parser = HfArgumentParser(Arguments)
     args = parser.parse_args_into_dataclasses()[0]
 
-    # append paths
+    # conditionally append paths
     # dataset
-    if args.dataset_folder is None:
-        dataset_folder = args.project_folder+'/data/raw/sugarcrepe'
-    else: 
-        dataset_folder = args.dataset_folder
+    dataset_dir = args.project_dir+'/data/raw/sugarcrepe' if args.dataset_dir is None else args.dataset_dir
     # coco images
-    if args.image_folder is None:
-        image_folder = args.project_folder+'/data/raw/coco/val2017'
-    else:
-        image_folder = args.image_folder
-    # coco annotations
-    if args.ann_folder is None:
-        ann_folder = args.project_folder+'/data/raw/coco/annotations'
-    else:
-        ann_folder = args.ann_folder
-    if args.ann_file is None:
-        ann_file = ann_folder+'/instances_val2017.json'
+    image_dir = args.project_dir+'/data/raw/coco/val2017' if args.image_dir is None else args.image_dir
+    # coco annotations folder
+    ann_dir = args.project_dir+'/data/raw/coco/annotations' if args.ann_dir is None else args.ann_dir
+    # coco annotations file
+    ann_file = ann_dir+'/instances_val2017.json' if args.ann_file is None else args.ann_file
 
     # load sugarcrepe
-    sugarcrepe = load_sugarcrepe(dataset_folder)
+    sugarcrepe = load_sugarcrepe(dataset_dir)
 
     # load annotations
     coco=COCO(ann_file)
-    coco_ids = list(coco.anns.keys())
 
-    # TODO: filter images
-    
+    # get coco image ids
+    image_ids = coco.getImgIds()
+
+    # filter images
+    image_ids = filter_sugarcrepe_distict_objects(coco, image_ids)
 
     # load model, processor
-    #model, processor = llava_load_model(args.model_name)
+    model, processor = llava_load_model(args.model_name)
 
-    # process image and prompt(default)
-    #inputs = llava_process_image(image, processor, device=model.device)
+    # eval loop
+    # get image, get all object tokens for the image
+    # for each object token generate logit lens mask and compare with coco mask
+    for image_id in image_ids:
 
-    # generate
-    #outputs = llava_generate(inputs, model)
+        # image info
+        image_info = coco.loadImgs(image_id)[0]
+        image_file = image_info['file_name']
+        image_width = image_info['width']
+        image_height = image_info['height']
 
-    # get logit lens
-    # vocab_dim, num_layers, num_tokens
-    #softmax_probs = llava_logit_lens(inputs, model, outputs)
+        # object tokens
+        tokens = coco_cats(coco, image_id)
 
+        # load image
+        image = Image.open(image_file).convert("RGB")
 
-    #plt.show()
+        # process image and prompt(default)
+        inputs = llava_process_image(image, processor, device=model.device)
+
+        # generate
+        outputs = llava_generate(inputs, model)
+
+        # get logit lens
+        # vocab_dim, num_layers, num_tokens
+        # TODO: what if token not in topk?
+        softmax_probs = llava_logit_lens(inputs, model, outputs, topk=args.topk)
+
+        # get non zero mask from lens
+        #get_mask_from_lens(softmax_probs, token, processor, num_patches, width, height)
+
