@@ -8,6 +8,9 @@ from transformers import LlavaForConditionalGeneration, AutoProcessor
 def load_sugarcrepe(folder_path):
     """load sugarcrepe dataset from local"""
 
+    if folder_path[-1] != '/':
+        folder_path += '/'
+
     # add attribute
     with open (folder_path+'add_att.json', encoding='utf8') as f:
         add_attribute = json.load(f)
@@ -45,6 +48,11 @@ def load_sugarcrepe(folder_path):
     }
 
     return dataset
+
+
+def filter_sugarcrepe():
+    """only consider images which has at most one object per annotation category"""
+    pass
 
 
 def llava_load_model(model_name, flash_attention=True, torch_dtype=torch.bfloat16):
