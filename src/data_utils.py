@@ -54,6 +54,19 @@ def coco_cats(coco, image_id):
     return cats
 
 
+def coco_object_mask(coco, image_id):
+    token_to_mask = {}
+    annotation_ids = coco.getAnnIds(imgIds=image_id)
+    annotations = coco.loadAnns(annotation_ids)
+    for ann in annotations:
+        mask = coco.annToMask(ann)
+        cat_id = ann['category_id']
+        cat = coco.loadCats(cat_id)[0]['name']
+        token_to_mask[cat] = mask
+    return token_to_mask
+        
+
+
 def filter_sugarcrepe_distict_objects(coco, image_ids):
     """only consider images which has at most one object per annotation category"""
     filtered_image_ids = []

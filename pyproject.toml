@@ -13,6 +13,7 @@ dependencies = [
     "pycocotools>=2.0.8",
     "pyqt6>=6.8.0",
     "qwen-vl-utils>=0.0.8",
+    "scikit-learn>=1.6.0",
     "torch>=2.5.1",
     "torchvision>=0.20.1",
     "transformers>=4.47.1",

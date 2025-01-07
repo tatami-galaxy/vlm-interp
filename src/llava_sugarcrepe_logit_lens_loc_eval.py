@@ -3,14 +3,16 @@
 from dataclasses import dataclass, field
 
 from PIL import Image
-import matplotlib.pyplot as plt
+from sklearn.metrics import f1_score
 
 from transformers import HfArgumentParser
 from pycocotools.coco import COCO
 
+
 from data_utils import(
     load_sugarcrepe,
     coco_cats,
+    coco_object_mask,
     filter_sugarcrepe_distict_objects,
 )
 
@@ -94,8 +96,11 @@ if __name__ == "__main__":
         # object tokens
         tokens = coco_cats(coco, image_id)
 
+        # get coco masks
+        token_to_mask = coco_object_mask(coco, image_id)
+
         # load image
-        image = Image.open(image_file).convert("RGB")
+        image = Image.open(image_dir+'/'+image_file).convert("RGB")
 
         # process image and prompt(default)
         inputs = llava_process_image(image, processor, device=model.device)
@@ -108,6 +113,28 @@ if __name__ == "__main__":
         # TODO: what if token not in topk?
         softmax_probs = llava_logit_lens(inputs, model, outputs, topk=args.topk)
 
-        # get non zero mask from lens
-        #get_mask_from_lens(softmax_probs, token, processor, num_patches, width, height)
+        # compare for each token
+
+        for token in tokens:
+            # get non zero mask from lens
+            ll_mask = get_mask_from_lens(
+                softmax_probs,
+                token,
+                processor,
+                args.num_patches,
+                image_width, image_height
+            )
+
+            # compare coco mask and logit lens mask
+            coco_mask = token_to_mask[token]
+
+            # f1 score to estimate overlap
+            f1 = f1_score(coco_mask.flatten(), ll_mask.flatten())
+            print("f1 score for {} : {}".format(token, f1))
+            quit()
+
+
+
+        
+
 
