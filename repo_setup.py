@@ -5,8 +5,8 @@ import subprocess
 def main():
 
     req = [
-        'matplotlib', "bitsandbytes",
-        'transformers', 'datasets', 'accelerate',
+        'matplotlib', "bitsandbytes", 'transformers',
+        'datasets', 'accelerate', 'scikit-learn',
         'evaluate', 'tensorboard', 'wandb', 'pycocotools',
     ]
 
