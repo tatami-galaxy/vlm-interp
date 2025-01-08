@@ -67,7 +67,7 @@ def coco_object_mask(coco, image_id):
         
 
 
-def filter_sugarcrepe_distict_objects(coco, image_ids):
+def filter_coco_distict_objects(coco, image_ids):
     """only consider images which has at most one object per annotation category"""
     filtered_image_ids = []
     for image_id in image_ids:
