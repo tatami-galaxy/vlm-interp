@@ -6,25 +6,33 @@ import torch
 from transformers.generation.logits_process import TopKLogitsWarper
 
 
-def llava_logit_lens(inputs, model, outputs, logit_topk=50, norm=False):
+def llava_logit_lens(inputs, model, outputs, output_type=None, logit_topk=50, norm=False):
     """get logit lens distribution over vocab"""
 
     assert outputs['hidden_states'] is not None
+    assert output_type is not None
+
     input_ids = inputs['input_ids']
     # https://github.com/huggingface/transformers/blob/main/src/transformers/generation/logits_process.py#L484
     logits_warper = TopKLogitsWarper(top_k=logit_topk, filter_value=float("-inf"))
     image_token_id = model.config.image_token_index
 
-    # first forward pass
-    hidden_states = torch.stack(outputs.hidden_states[0])
+    if output_type == 'generate':
+        # first forward pass
+        hidden_states = torch.stack(outputs.hidden_states[0])
+    elif output_type == 'forward':
+        hidden_states = torch.stack(outputs.hidden_states)
     
     with torch.inference_mode():
         
+        # norm
         if norm:
             hidden_states[:-1, :, :, :] = model.language_model.model.norm(hidden_states[:-1, :, :, :])
+
         # unembedding
         curr_layer_logits = model.language_model.lm_head(hidden_states).cpu().float()
         logit_scores = torch.nn.functional.log_softmax(curr_layer_logits, dim=-1)
+        
         # remove all tokens with a probability less than the last token of the top-k
         # input_ids not used by the __call__ method
         logit_scores = logits_warper(input_ids, logit_scores)

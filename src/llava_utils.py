@@ -40,16 +40,13 @@ def llava_forward_pass(inputs, model, output_hidden_states=False, output_attenti
         output_hidden_states=output_hidden_states,
         output_attentions=output_attentions,
     )
-    logits = output['logits']
-    hidden_states = output['hidden_states'] if output_hidden_states else None
-    attentions = output['attentions'] if output_attentions else None
-    return logits, hidden_states, attentions
+    return output
 
 
 def llava_generate(
         inputs,
         model,
-        output_hidden_states=True,
+        output_hidden_states=False,
         num_beams=5,
         temperature=1.0,
         max_new_tokens=512
