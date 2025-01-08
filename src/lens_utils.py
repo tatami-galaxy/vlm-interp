@@ -6,12 +6,12 @@ import torch
 from transformers.generation.logits_process import TopKLogitsWarper
 
 
-def llava_logit_lens(inputs, model, outputs, topk=50, norm=False):
+def llava_logit_lens(inputs, model, outputs, logit_topk=50, norm=False):
     """get logit lens distribution over vocab"""
 
     assert outputs['hidden_states'] is not None
     input_ids = inputs['input_ids']
-    logits_warper = TopKLogitsWarper(top_k=topk, filter_value=float("-inf"))
+    logits_warper = TopKLogitsWarper(top_k=logit_topk, filter_value=float("-inf"))
     image_token_id = model.config.image_token_index
 
     # first forward pass
@@ -55,7 +55,7 @@ def get_mask_from_lens(
         width,
         height,
         mask_type='topk',
-        topk=10000
+        mask_topk=10000
     ):
 
     class_token_indices = processor.tokenizer.encode(token)[1:]
@@ -79,9 +79,9 @@ def get_mask_from_lens(
     elif mask_type == 'topk':
         # topk values
         # https://stackoverflow.com/questions/57103908/finding-indices-of-k-top-values-in-a-2d-array-matrix
-        max_k = np.c_[np.unravel_index(np.argpartition(segmentation_resized.ravel(),-topk)[-topk:],segmentation_resized.shape)]
+        max_k = np.c_[np.unravel_index(np.argpartition(segmentation_resized.ravel(),-mask_topk)[-mask_topk:],segmentation_resized.shape)]
         # set non zero segmentation value positions to 1 in mask
-        for k in range(topk):
+        for k in range(mask_topk):
             mask[max_k[k][0], max_k[k][1]] = 1
 
     else:
