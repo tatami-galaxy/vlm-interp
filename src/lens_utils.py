@@ -11,6 +11,7 @@ def llava_logit_lens(inputs, model, outputs, logit_topk=50, norm=False):
 
     assert outputs['hidden_states'] is not None
     input_ids = inputs['input_ids']
+    # https://github.com/huggingface/transformers/blob/main/src/transformers/generation/logits_process.py#L484
     logits_warper = TopKLogitsWarper(top_k=logit_topk, filter_value=float("-inf"))
     image_token_id = model.config.image_token_index
 
@@ -73,6 +74,7 @@ def get_mask_from_lens(
         # consider nonzero entries
         non_zeros = np.nonzero(segmentation_resized)
         # set non zero segmentation value positions to 1 in mask
+        # TODO: vectorize
         for n in range(len(non_zeros[0])):
             mask[non_zeros[0][n], non_zeros[1][n]] = 1
 
@@ -80,6 +82,7 @@ def get_mask_from_lens(
         # topk values
         # https://stackoverflow.com/questions/57103908/finding-indices-of-k-top-values-in-a-2d-array-matrix
         max_k = np.c_[np.unravel_index(np.argpartition(segmentation_resized.ravel(),-mask_topk)[-mask_topk:],segmentation_resized.shape)]
+        # TODO: vectorize
         # set non zero segmentation value positions to 1 in mask
         for k in range(mask_topk):
             mask[max_k[k][0], max_k[k][1]] = 1
