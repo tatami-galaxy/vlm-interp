@@ -35,11 +35,12 @@ def llava_process_image(image, processor, device, prompt='default'):
 
 def llava_forward_pass(inputs, model, output_hidden_states=False, output_attentions=False):
     """Forward pass through the model to collect logits, hidden_states, attentions"""
-    output = model(
-        **inputs,
-        output_hidden_states=output_hidden_states,
-        output_attentions=output_attentions,
-    )
+    with torch.no_grad():
+        output = model(
+            **inputs,
+            output_hidden_states=output_hidden_states,
+            output_attentions=output_attentions,
+        )
     return output
 
 
