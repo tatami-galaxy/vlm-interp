@@ -12,9 +12,9 @@ def main():
 
 
     # directorries
-    os.mkdir('data')
+    #os.mkdir('data')
     os.mkdir('data/raw')
-    os.mkdir('data/processed')
+    #os.mkdir('data/processed')
     os.mkdir('data/raw/coco')
 
     os.mkdir('models')
