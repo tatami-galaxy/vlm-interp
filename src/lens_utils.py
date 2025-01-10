@@ -30,7 +30,7 @@ def llava_logit_lens(inputs, model, outputs, output_type=None, logit_topk=50, no
             hidden_states[:-1, :, :, :] = model.language_model.model.norm(hidden_states[:-1, :, :, :])
 
         # unembedding
-        curr_layer_logits = model.language_model.lm_head(hidden_states).cpu().float()
+        curr_layer_logits = model.language_model.lm_head(hidden_states).cpu().float() # -> TODO: stop here, use only logit
         logit_scores = torch.nn.functional.log_softmax(curr_layer_logits, dim=-1)
         
         # remove all tokens with a probability less than the last token of the top-k
