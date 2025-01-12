@@ -6,7 +6,7 @@ def main():
 
     req = [
         'matplotlib', "bitsandbytes", 'transformers',
-        'datasets', 'accelerate', 'scikit-learn',
+        'datasets', 'accelerate', 'scikit-learn', 'qwen-vl-utils',
         'evaluate', 'tensorboard', 'wandb', 'pycocotools',
     ]
 
